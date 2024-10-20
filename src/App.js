@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+
 const tempMovieData = [
   {
     imdbID: "tt1375666",
@@ -62,13 +63,15 @@ export default function App() {
       </NavBar>
 
       <Main>
-        <Box>
-          <MovieList movies={movies} />
-        </Box>
-        <Box>
-          <WatchedBoxSummary watched={watched} />
-          <WatchedMoviesList watched={watched} />
-        </Box>
+        <Box elemeto={<MovieList movies={movies} />} />
+        <Box
+          elemeto={
+            <>
+              <WatchedBoxSummary watched={watched} />
+              <WatchedMoviesList watched={watched} />
+            </>
+          }
+        />
       </Main>
     </>
   );
@@ -110,7 +113,7 @@ function Main({ children }) {
   return <main className="main">{children}</main>;
 }
 
-function Box({ children }) {
+function Box({ elemeto }) {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
@@ -119,7 +122,7 @@ function Box({ children }) {
         {isOpen ? "–" : "+"}
       </button>
 
-      {isOpen && children}
+      {isOpen && elemeto}
     </div>
   );
 }
