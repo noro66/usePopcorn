@@ -57,12 +57,20 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState("");
   const [query, setQuery] = useState("aura");
+  const [selectedId, setSelectedId] = useState(null);
+
+  function onSelectId(id) {
+    setSelectedId(selectedId => id === selectedId ? null : id);
+  }
+  function onCloseMovie() {
+    setSelectedId(null);
+  }
 
   useEffect(() => {
     async function fetchData() {
       try {
         setIsLoading(true);
-        setIsError('');
+        setIsError("");
         const res = await fetch(
           `http://www.omdbapi.com/?apikey=${apkey}&s=${query}`
         );
@@ -80,9 +88,9 @@ export default function App() {
         setIsLoading(false);
       }
     }
-    if(query.length < 3){
+    if (query.length < 3) {
       setMovies([]);
-      setIsError('');
+      setIsError("");
       return;
     }
 
@@ -98,13 +106,25 @@ export default function App() {
 
       <Main>
         <Box>
-          {!isLoading && !isError && <MovieList movies={movies} />}
+          {!isLoading && !isError && (
+            <MovieList
+              movies={movies}
+              onSelectId={onSelectId}
+              onCloseMovie={onCloseMovie}
+            />
+          )}
           {isLoading && <Loader />}
           {isError && <ErrorMessgae message={isError} />}
         </Box>
         <Box>
-          <WatchedBoxSummary watched={watched} />
-          <WatchedMoviesList watched={watched} />
+          { selectedId ? (
+            <MovieDetails  selectedId={selectedId} onCloseMovie={onCloseMovie}/>
+          ) : (
+            <>
+              <WatchedBoxSummary watched={watched} />
+              <WatchedMoviesList watched={watched} />
+            </>
+          )}
         </Box>
       </Main>
     </>
@@ -121,9 +141,7 @@ function Loader() {
 function NavBar({ children }) {
   return <nav className="nav-bar">{children}</nav>;
 }
-function Search({query, setQuery}) {
-  
-
+function Search({ query, setQuery }) {
   return (
     <input
       className="search"
@@ -168,18 +186,22 @@ function Box({ children }) {
   );
 }
 
-function MovieList({ movies }) {
+function MovieList({ movies, onSelectId, onCloseMovie }) {
   return (
-    <ul className="list">
+    <ul className="list list-movies">
       {movies?.map((movie) => (
-        <Movie movie={movie} key={movie.imdbID} />
+        <Movie
+          movie={movie}
+          key={movie.imdbID}
+          onSelectId={onSelectId}
+        />
       ))}
     </ul>
   );
 }
-function Movie({ movie }) {
+function Movie({ movie, onSelectId }) {
   return (
-    <li>
+    <li onClick={() => onSelectId(movie.imdbID)}>
       <img src={movie.Poster} alt={`${movie.Title} poster`} />
       <h3>{movie.Title}</h3>
       <div>
@@ -189,6 +211,15 @@ function Movie({ movie }) {
         </p>
       </div>
     </li>
+  );
+}
+
+function MovieDetails({ selectedId, onCloseMovie }) {
+  return (
+    <div className="details">
+      <button onClick={onCloseMovie} className="btn btn-back">&larr;</button>
+      {selectedId}
+    </div>
   );
 }
 
