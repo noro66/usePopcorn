@@ -1,5 +1,4 @@
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
 
 const tempMovieData = [
   {
@@ -51,9 +50,37 @@ const tempWatchedData = [
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+const apkey = process.env.REACT_APP_API_KEY;
 export default function App() {
   const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState("");
+  const query = "interstellar";
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${apkey}&s=${query}`
+        );
+        if (!res.ok)
+          throw new Error("Something went Wrong with fetching movies");
+
+        const data = await res.json();
+        if (data.Response === "False") throw new Error("Movie Not Found");
+
+        setMovies(data.Search);
+        console.log(data.Search);
+      } catch (error) {
+        setIsError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
   return (
     <>
       <NavBar>
@@ -63,18 +90,25 @@ export default function App() {
       </NavBar>
 
       <Main>
-        <Box elemeto={<MovieList movies={movies} />} />
-        <Box
-          elemeto={
-            <>
-              <WatchedBoxSummary watched={watched} />
-              <WatchedMoviesList watched={watched} />
-            </>
-          }
-        />
+        <Box>
+          {!isLoading && !isError && <MovieList movies={movies} />}
+          {isLoading && <Loader />}
+          {isError && <ErrorMessgae message={isError} />}
+        </Box>
+        <Box>
+          <WatchedBoxSummary watched={watched} />
+          <WatchedMoviesList watched={watched} />
+        </Box>
       </Main>
     </>
   );
+}
+function ErrorMessgae({ message }) {
+  return <p className="error">{message}</p>;
+}
+
+function Loader() {
+  return <p className="loader">Loading...</p>;
 }
 
 function NavBar({ children }) {
@@ -113,7 +147,7 @@ function Main({ children }) {
   return <main className="main">{children}</main>;
 }
 
-function Box({ elemeto }) {
+function Box({ children }) {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
@@ -122,7 +156,7 @@ function Box({ elemeto }) {
         {isOpen ? "–" : "+"}
       </button>
 
-      {isOpen && elemeto}
+      {isOpen && children}
     </div>
   );
 }
