@@ -27,7 +27,7 @@ export default function StarRating({
   className = "",
   messages = "",
   defaultRating = 0,
-  onSetRating,
+  onSetRating = (v) => null,
 }) {
   const textStyles = {
     color,
@@ -41,7 +41,7 @@ export default function StarRating({
 
   function handelRating(rating) {
     setRating(rating);
-    onSetRating(rating)
+    onSetRating(rating);
   }
 
   return (
