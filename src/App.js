@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
+import {useLoclaStorgae} from './useLocalStorage'
 
 // const tempMovieData = [
 //   {
@@ -57,13 +58,7 @@ export default function App() {
 
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-  const [watched, setWatched] = useState(function () {
-    const storeValue = localStorage.getItem("watched");
-    return storeValue ? JSON.parse(storeValue) : [];
-  });
-  useEffect(() => {
-    localStorage.setItem("watched", JSON.stringify(watched));
-  }, [watched]);
+  const [watched, setWatched] = useLoclaStorgae("watched");
 
   function onSelectId(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
