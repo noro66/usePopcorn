@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 
 const tempMovieData = [
@@ -54,11 +54,17 @@ const average = (arr) =>
 const apkey = process.env.REACT_APP_API_KEY;
 export default function App() {
   const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState("");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
+  const [watched, setWatched] = useState(function () {
+    const storeValue = localStorage.getItem("watched");
+    return storeValue ? JSON.parse(storeValue) : [];
+  });
+  useEffect(() => {
+    localStorage.setItem("watched", JSON.stringify(watched));
+  }, [watched]);
 
   function onSelectId(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -161,6 +167,19 @@ function NavBar({ children }) {
   return <nav className="nav-bar">{children}</nav>;
 }
 function Search({ query, setQuery }) {
+  const inputRef = useRef();
+  useEffect(()=>{
+    function callback(e){
+      if(document.activeElement === inputRef.current) return;
+      if(e.code === "Enter"){
+        inputRef.current.focus();
+        setQuery('');
+      }
+    }
+    inputRef.current.focus();
+    document.addEventListener('keydown', callback);
+
+  },[setQuery])
   return (
     <input
       className="search"
@@ -168,6 +187,7 @@ function Search({ query, setQuery }) {
       placeholder="Search movies..."
       value={query}
       onChange={(e) => setQuery(e.target.value)}
+      ref={inputRef}
     />
   );
 }
@@ -241,16 +261,16 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWached, watched }) {
   )?.userRating;
 
   useEffect(() => {
-    function callback( e) {
+    function callback(e) {
       if (e.code === "Escape") {
         onCloseMovie();
       }
     }
     document.addEventListener("keydown", callback);
 
-    return ()=> {
-      document.removeEventListener('keydown', callback);
-    }
+    return () => {
+      document.removeEventListener("keydown", callback);
+    };
   }, [onCloseMovie]);
 
   const {
